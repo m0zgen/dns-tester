@@ -11,8 +11,8 @@ SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 # Initial variables
 # ---------------------------------------------------\
-_DNS="bld.sys-adm.in"
-_TARGET="sys-adm.in"
+_DNS="1.1.1.1"
+_TARGET="google.com"
 _TARGETS=$1
 
 if [[ -z $2 ]]; then
