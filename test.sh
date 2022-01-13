@@ -40,6 +40,21 @@ if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
   usage
 fi
 
+spinner()
+{
+    local pid=$!
+    local delay=0.75
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
 singleTest() {
 	for i in `seq 1 $_TESTS`; do 
 		result=`dig @$_DNS $_TARGET | awk '/Query time:/ {print " "$4}'`
@@ -54,7 +69,7 @@ statisticsTest() {
 		    time=`dig @$IP $site| awk '/Query time:/ {print " "$4}'`
 		    IPtrans=`echo $IP|tr \. _`
 		    eval `echo result$IPtrans=\"\\$result$IPtrans$time\"`
-		done
+		done & spinner
 	done
 
 	echo -e "\nResult statistics:\n"
@@ -69,6 +84,7 @@ statisticsTest() {
 
 # Script inits
 # ---------------------------------------------------\
-singleTest
+# singleTest
 statisticsTest
+
 
