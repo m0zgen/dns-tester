@@ -2,6 +2,8 @@
 
 * `test.sh` - is script which reading `my-dns.txt` file and test DNS with `dig` command
 
+![](docs/test-dns.gif)
+
 ### Usage:
 
 You can use this script with several parameters:
@@ -11,7 +13,7 @@ You can use this script with several parameters:
 
 Also you can optionally set numbers of iterating tests (default is 3):
 ```bash
-/test.sh my-dns.txt 5
+/test.sh my-dns.txt 4
 ```
 
 ### Additional tools
