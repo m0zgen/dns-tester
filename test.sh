@@ -127,7 +127,7 @@ statisticsTest() {
 	# Testing dig installed
 	if ! command -v dig &> /dev/null
 	then
-	    echo "The dig could not be found. Please install dig. Exit. Bye."
+	    echo -e "\nThe dig could not be found. Please install dig command!\nExit. Bye.\n"
 	    exit
 	fi
 
