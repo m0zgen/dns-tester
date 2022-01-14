@@ -102,10 +102,9 @@ function spin {
 # Single test
 singleTest() {
 
-	echo -e "Example speed from $_DNS to $_TARGET:"
 	for i in `seq 1 $1`; do 
 		result=`dig @$_DNS $_TARGET | awk '/Query time:/ {print " "$4}'`
-		echo -e "Time (ms):$result from $_DNS to $_TARGET"
+		echo -e "Example time (ms):$result from $_DNS to $_TARGET"
 	done
 	echo ''
 
@@ -113,7 +112,7 @@ singleTest() {
 
 # Digger routine
 dig_ip() {
-		# echo -e "Iterating: $1"
+		
 		for IP in `cat $_TARGETS`; do
 		    time=`dig @$IP $site| awk '/Query time:/ {print " "$4}'`
 		    IPtrans=`echo $IP|tr \. _`
@@ -144,6 +143,7 @@ statisticsTest() {
 	             END{ if (rec==0) {ave=0} else {ave=total/rec}; printf "average %5i     min %5i     max %5i ms %2i responses\n", ave,minn,maxx,rec}'
 	done
 	echo ""
+
 }
 
 # Actions
