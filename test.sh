@@ -125,7 +125,7 @@ dig_ip() {
 statisticsTest() {
 
 	# Testing dig installed
-	if which dig &> /dev/null
+	if command -v dig &> /dev/null
 	then
 		echo "Please install gig"
 		exit 1
@@ -144,7 +144,7 @@ statisticsTest() {
 		             END{ if (rec==0) {ave=0} else {ave=total/rec}; printf "average %5i     min %5i     max %5i ms %2i responses\n", ave,minn,maxx,rec}'
 		done
 		echo ""
-		
+
 	fi
 }
 
