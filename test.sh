@@ -11,8 +11,11 @@ SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 # Initial variables
 # ---------------------------------------------------\
+# Notify in colors
+# ---------------------------------------------------\
+
 _DNS="1.1.1.1"
-_TARGET="google.com"
+_TARGET="lab.sys-adm.in"
 _TARGETS=$1
 
 if [[ -z $2 ]]; then
@@ -36,40 +39,93 @@ usage() {
 	exit 1
 }
 
-if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
-  usage
-fi
+# Spinner
+# ---------------------------------------------------\
+function _spinner() {
+ 
+    case $1 in
+        start)
+            let column=$(tput cols)-${#2}-120
+            echo -ne ${2}
+            printf "%${column}s"
 
-spinner()
-{
-    local pid=$!
-    local delay=0.75
-    local spinstr='|/-\'
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
+            i=1
+            sp='\|/-'
+            delay=${SPINNER_DELAY:-0.1}
+
+            while :
+            do
+                printf "\b${sp:i++%${#sp}:1}"
+                sleep $delay
+            done
+            ;;
+        stop)
+            if [[ -z ${3} ]]; then
+                echo "spinner is not running.."
+                exit 1
+            fi
+
+            kill $3 > /dev/null 2>&1
+
+            echo -en "\b["
+            if [[ $2 -eq 0 ]]; then
+                echo -en "DONE"
+            else
+                echo -en "FAIL"
+            fi
+            echo -e "]"
+            ;;
+        *)
+            echo "invalid argument, try {start/stop}"
+            exit 1
+            ;;
+    esac
 }
 
+function start_spinner {
+    _spinner "start" "${1}" &
+    _sp_pid=$!
+    disown
+}
+
+function stop_spinner {
+    _spinner "stop" $1 $_sp_pid
+    unset _sp_pid
+}
+
+function spin {
+	start_spinner "Iterating ${1}"
+	  $2 > /dev/null 2>&1
+	  stop_spinner $?
+}
+
+# Single test
 singleTest() {
-	for i in `seq 1 $_TESTS`; do 
+
+	echo -e "Example speed from $_DNS to $_TARGET:"
+	for i in `seq 1 $1`; do 
 		result=`dig @$_DNS $_TARGET | awk '/Query time:/ {print " "$4}'`
 		echo -e "Time (ms):$result from $_DNS to $_TARGET"
 	done
+	echo ''
+
 }
 
-statisticsTest() {
-	for i in `seq 1 $_TESTS`; do 
-		echo -e "Iterating: $i"
+# Digger routine
+dig_ip() {
+		# echo -e "Iterating: $1"
 		for IP in `cat $_TARGETS`; do
 		    time=`dig @$IP $site| awk '/Query time:/ {print " "$4}'`
 		    IPtrans=`echo $IP|tr \. _`
 		    eval `echo result$IPtrans=\"\\$result$IPtrans$time\"`
-		done & spinner
+		done
+}
+
+# Statistic test
+statisticsTest() {
+	echo ''; singleTest 1 # $_TESTS
+	for i in `seq 1 $_TESTS`; do 
+		spin $i 'dig_ip $i'
 	done
 
 	echo -e "\nResult statistics:\n"
@@ -82,9 +138,11 @@ statisticsTest() {
 	echo ""
 }
 
-# Script inits
+# Actions
 # ---------------------------------------------------\
-# singleTest
+
+if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
+  usage
+fi
+
 statisticsTest
-
-
