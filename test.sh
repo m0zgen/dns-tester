@@ -44,6 +44,7 @@ while [[ "$#" -gt 0 ]]; do
         -r|--resolver) _RESOLVER=1 _RESOLVER_DATA=$2; ;; # Custom resolver
         -d|--domain) _DOMAIN=1 _DOMAIN_DATA=$2; ;; # Like as target
         -a|--add) _ADD=1 _ADD_DATA=$2; ;; # Add IP to default.txt
+        -s|--sort) _SORT=1; ;;
         -l|--list) _LIST=1; shift ;;
         -h|--help) usage ;; 
         *) _DEFAULT=1 ;;
@@ -171,6 +172,10 @@ statisticsTest() {
 
 }
 
+sorting() {
+    cat default.txt | uniq | sort > sorted.txt; mv sorted.txt default.txt;
+}
+
 exit_success() {
     exit 0
 }
@@ -179,9 +184,9 @@ exit_success() {
 # ---------------------------------------------------\
 
 # Customs
+if [[ "$_SORT" -eq "1" ]]; then sorting; fi
+
 if [[ "$_ADD" -eq "1" ]]; then
-    
-    
 
     if grep -R "$_ADD_DATA" "$_DEFAULT_LIST"
     then
@@ -189,7 +194,8 @@ if [[ "$_ADD" -eq "1" ]]; then
     else
         echo "Adding $_ADD_DATA to default.txt..."
         echo -e "$_ADD_DATA" >> $_DEFAULT_LIST
-        cat default.txt | uniq | sort > sorted.txt; mv sorted.txt default.txt;
+
+        if [[ "$_SORT" -eq "1" ]]; then sorting; fi
     fi
     
     exit_success
