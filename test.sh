@@ -6,7 +6,7 @@
 # Sys env / paths / etc
 # -------------------------------------------------------------------------------------------\
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
+SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd); cd $SCRIPT_PATH
 SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 # Initial variables
@@ -14,8 +14,7 @@ SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 # Notify in colors
 # ---------------------------------------------------\
 
-_DNS="1.1.1.1"
-_TARGET="lab.sys-adm.in"
+_DEFAULT_LIST="default.txt"
 _TARGETS=$1
 
 if [[ -z $2 ]]; then
@@ -30,14 +29,47 @@ fi
 usage() {
 
 	echo -e "\nYou can use this script with several parameters:"
-	echo -e "./$SCRIPT_NAME my-dns.txt"
+	echo -e "./$SCRIPT_NAME $_DEFAULT_LIST"
 	echo -e "* my-dns.txt - DNS servers IP list
 \nAlso you can optionally set numbers of iterating tests:
-/$SCRIPT_NAME my-dns.txt 5
+/$SCRIPT_NAME $_DEFAULT_LIST 5
 * 5 - Number of test iterations
 	"
+    echo -e "Additional parameters:
+-r - Set custom resolver DNS IP
+-d - Target resolve domain name
+-a - Add IP to $_DEFAULT_LIST
+-s - Sort IP list $_DEFAULT_LIST or custom with -l parameter
+"
 	exit 1
 }
+
+# Checks arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -r|--resolver) _RESOLVER=1 _RESOLVER_DATA=$2; ;; # Custom resolver
+        -d|--domain) _DOMAIN=1 _DOMAIN_DATA=$2; ;; # Like as target
+        -a|--add) _ADD=1 _ADD_DATA=$2; ;; # Add IP to default.txt
+        -s|--sort) _SORT=1; ;;
+        -l|--list) _LIST=1 _LIST_DATA=$2; shift ;;
+        -h|--help) usage ;; 
+        *) _DEFAULT=1 ;;
+    esac
+    shift
+done
+
+# Options
+if [[ "$_RESOLVER" -eq "1" ]]; then
+    _DNS="$_RESOLVER_DATA"
+else
+    _DNS="1.1.1.1"
+fi
+
+if [[ "$_DOMAIN" -eq "1" ]]; then
+    _TARGET="$_DOMAIN_DATA"
+else
+    _TARGET="lab.sys-adm.in"
+fi
 
 # Spinner
 # ---------------------------------------------------\
@@ -146,11 +178,77 @@ statisticsTest() {
 
 }
 
+sorting() {
+    cat default.txt | uniq | sort > sorted.txt; mv sorted.txt default.txt;
+}
+
+exit_success() {
+    exit 0
+}
+
+exit_err() {
+    exit 1
+}
+
 # Actions
 # ---------------------------------------------------\
 
-if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
-  usage
+# Customs
+if [[ "$_SORT" -eq "1" ]]; then 
+
+    if [[ "$_LIST" -eq "1" ]]; then 
+
+        if [[ -f "$_LIST_DATA" ]]; then
+            echo "Sorting $_LIST_DATA..."
+            sorting
+            echo "Done."
+        else
+            echo "File $_LIST_DATA does not exists. Exit."
+            exit_err
+        fi
+
+        
+    else
+        echo "Sorting default.txt..."
+        sorting
+        echo "Done."
+    fi
+
+    exit_success
 fi
 
-statisticsTest
+if [[ "$_ADD" -eq "1" ]]; then
+
+    if grep -R "$_ADD_DATA" "$_DEFAULT_LIST"
+    then
+        echo "IP already exist"
+    else
+        echo "Adding $_ADD_DATA to $_DEFAULT_LIST..."
+        echo -e "$_ADD_DATA" >> $_DEFAULT_LIST
+
+        if [[ "$_SORT" -eq "1" ]]; then sorting; fi
+    fi
+    
+    exit_success
+fi
+
+# Operational
+
+# If parameters / arguments is empty
+if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
+    cd $SCRIPT_PATH; ./$SCRIPT_NAME $_DEFAULT_LIST 1
+    usage
+fi
+
+# statisticsTest
+
+
+if [[ "$_DEFAULT" -eq "1" ]]; then
+    
+    echo "Starting..."
+    statisticsTest
+    exit_success
+
+fi
+
+
