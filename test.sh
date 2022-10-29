@@ -29,12 +29,18 @@ fi
 usage() {
 
 	echo -e "\nYou can use this script with several parameters:"
-	echo -e "./$SCRIPT_NAME my-dns.txt"
+	echo -e "./$SCRIPT_NAME $_DEFAULT_LIST"
 	echo -e "* my-dns.txt - DNS servers IP list
 \nAlso you can optionally set numbers of iterating tests:
-/$SCRIPT_NAME my-dns.txt 5
+/$SCRIPT_NAME $_DEFAULT_LIST 5
 * 5 - Number of test iterations
 	"
+    echo -e "Additional parameters:
+-r - Set custom resolver DNS IP
+-d - Target resolve domain name
+-a - Add IP to $_DEFAULT_LIST
+-s - Sort IP list $_DEFAULT_LIST or custom with -l parameter
+"
 	exit 1
 }
 
@@ -217,7 +223,7 @@ if [[ "$_ADD" -eq "1" ]]; then
     then
         echo "IP already exist"
     else
-        echo "Adding $_ADD_DATA to default.txt..."
+        echo "Adding $_ADD_DATA to $_DEFAULT_LIST..."
         echo -e "$_ADD_DATA" >> $_DEFAULT_LIST
 
         if [[ "$_SORT" -eq "1" ]]; then sorting; fi
@@ -230,7 +236,7 @@ fi
 
 # If parameters / arguments is empty
 if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
-    cd $SCRIPT_PATH; ./$SCRIPT_NAME default.txt 1
+    cd $SCRIPT_PATH; ./$SCRIPT_NAME $_DEFAULT_LIST 1
     usage
 fi
 
