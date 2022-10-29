@@ -45,7 +45,7 @@ while [[ "$#" -gt 0 ]]; do
         -d|--domain) _DOMAIN=1 _DOMAIN_DATA=$2; ;; # Like as target
         -a|--add) _ADD=1 _ADD_DATA=$2; ;; # Add IP to default.txt
         -s|--sort) _SORT=1; ;;
-        -l|--list) _LIST=1; shift ;;
+        -l|--list) _LIST=1 _LIST_DATA=$2; shift ;;
         -h|--help) usage ;; 
         *) _DEFAULT=1 ;;
     esac
@@ -180,11 +180,36 @@ exit_success() {
     exit 0
 }
 
+exit_err() {
+    exit 1
+}
+
 # Actions
 # ---------------------------------------------------\
 
 # Customs
-if [[ "$_SORT" -eq "1" ]]; then sorting; fi
+if [[ "$_SORT" -eq "1" ]]; then 
+
+    if [[ "$_LIST" -eq "1" ]]; then 
+
+        if [[ -f "$_LIST_DATA" ]]; then
+            echo "Sorting $_LIST_DATA..."
+            sorting
+            echo "Done."
+        else
+            echo "File $_LIST_DATA does not exists. Exit."
+            exit_err
+        fi
+
+        
+    else
+        echo "Sorting default.txt..."
+        sorting
+        echo "Done."
+    fi
+
+    exit_success
+fi
 
 if [[ "$_ADD" -eq "1" ]]; then
 
