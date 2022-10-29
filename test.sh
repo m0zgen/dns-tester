@@ -6,7 +6,7 @@
 # Sys env / paths / etc
 # -------------------------------------------------------------------------------------------\
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
+SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd); cd $SCRIPT_PATH
 SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 # Initial variables
@@ -14,6 +14,7 @@ SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 # Notify in colors
 # ---------------------------------------------------\
 
+_DEFAULT_LIST="default.txt"
 _TARGETS=$1
 
 if [[ -z $2 ]]; then
@@ -42,6 +43,7 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         -r|--resolver) _RESOLVER=1 _RESOLVER_DATA=$2; ;; # Custom resolver
         -d|--domain) _DOMAIN=1 _DOMAIN_DATA=$2; ;; # Like as target
+        -a|--add) _ADD=1 _ADD_DATA=$2; ;; # Add IP to default.txt
         -l|--list) _LIST=1; shift ;;
         -h|--help) usage ;; 
         *) _DEFAULT=1 ;;
@@ -169,8 +171,31 @@ statisticsTest() {
 
 }
 
+exit_success() {
+    exit 0
+}
+
 # Actions
 # ---------------------------------------------------\
+
+# Customs
+if [[ "$_ADD" -eq "1" ]]; then
+    
+    
+
+    if grep -R "$_ADD_DATA" "$_DEFAULT_LIST"
+    then
+        echo "IP already exist"
+    else
+        echo "Adding $_ADD_DATA to default.txt..."
+        echo -e "$_ADD_DATA" >> $_DEFAULT_LIST
+        cat default.txt | uniq | sort > sorted.txt; mv sorted.txt default.txt;
+    fi
+    
+    exit_success
+fi
+
+# Operational
 
 # If parameters / arguments is empty
 if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
@@ -185,7 +210,7 @@ if [[ "$_DEFAULT" -eq "1" ]]; then
     
     echo "Starting..."
     statisticsTest
-    exit 0
+    exit_success
 
 fi
 
