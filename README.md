@@ -35,7 +35,7 @@ Customs:
 ./test.sh default.txt 2 -d google.com -r 8.8.8.8
 ```
 
-Add IP
+Add new IP in to default list:
 ```
 ./test.sh -a "173.245.58.52"
 ```
@@ -48,10 +48,6 @@ Add IP and sort:
 Sort custom list:
 ```
 ./test.sh -s -l default.txt
-```
-
-```
-
 ```
 
 Defaults:
