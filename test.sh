@@ -14,8 +14,6 @@ SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 # Notify in colors
 # ---------------------------------------------------\
 
-_DNS="1.1.1.1"
-_TARGET="lab.sys-adm.in"
 _TARGETS=$1
 
 if [[ -z $2 ]]; then
@@ -38,6 +36,31 @@ usage() {
 	"
 	exit 1
 }
+
+# Checks arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -r|--resolver) _RESOLVER=1 _RESOLVER_DATA=$2; ;; # Custom resolver
+        -d|--domain) _DOMAIN=1 _DOMAIN_DATA=$2; ;; # Like as target
+        -l|--list) _LIST=1; shift ;;
+        -h|--help) usage ;; 
+        *) _DEFAULT=1 ;;
+    esac
+    shift
+done
+
+# Options
+if [[ "$_RESOLVER" -eq "1" ]]; then
+    _DNS="$_RESOLVER_DATA"
+else
+    _DNS="1.1.1.1"
+fi
+
+if [[ "$_DOMAIN" -eq "1" ]]; then
+    _TARGET="$_DOMAIN_DATA"
+else
+    _TARGET="lab.sys-adm.in"
+fi
 
 # Spinner
 # ---------------------------------------------------\
@@ -149,8 +172,21 @@ statisticsTest() {
 # Actions
 # ---------------------------------------------------\
 
+# If parameters / arguments is empty
 if [ ! -f "$_TARGETS" ] || ! echo "$_TESTS"|egrep -q "[0-9]+" ; then
-  usage
+    cd $SCRIPT_PATH; ./$SCRIPT_NAME default.txt 1
+    usage
 fi
 
-statisticsTest
+# statisticsTest
+
+
+if [[ "$_DEFAULT" -eq "1" ]]; then
+    
+    echo "Starting..."
+    statisticsTest
+    exit 0
+
+fi
+
+
