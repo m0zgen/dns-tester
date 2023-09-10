@@ -6,7 +6,15 @@
 
 ### Usage:
 
-You can use this script with several parameters:
+Create file with list of IP addresses:
+```bash
+#Google
+8.8.8.8
+#CF
+1.1.1.1
+``
+
+Or use default list `default.txt`:
 ```bash
 ./test.sh default.txt
 ```

@@ -146,9 +146,13 @@ singleTest() {
 dig_ip() {
 		
 		for IP in `cat $_TARGETS`; do
-		    time=`dig @$IP $site| awk '/Query time:/ {print " "$4}'`
-		    IPtrans=`echo $IP|tr \. _`
-		    eval `echo result$IPtrans=\"\\$result$IPtrans$time\"`
+
+            # If linie not contains # - comment
+            if [[ ${IP} != *"#"* ]]; then
+                time=`dig @$IP $site| awk '/Query time:/ {print " "$4}'`
+                IPtrans=`echo $IP|tr \. _`
+                eval `echo result$IPtrans=\"\\$result$IPtrans$time\"`
+            fi
 		done
 }
 
@@ -170,9 +174,11 @@ statisticsTest() {
 	echo -e "\nResult statistics:\n"
 
 	for IP in `cat $_TARGETS`; do
-	  IPtrans=`echo $IP|tr \. _`
-	  printf "%-15s " "$IP"; echo -e `eval "echo \\$result$IPtrans"`|tr ' ' "\n"|awk '/.+/ {rt=$1; rec=rec+1; total=total+rt; if (minn>rt || minn==0) {minn=rt}; if (maxx<rt) {maxx=rt}; }
+        if [[ ${IP} != *"#"* ]]; then
+            IPtrans=`echo $IP|tr \. _`
+            printf "%-15s " "$IP"; echo -e `eval "echo \\$result$IPtrans"`|tr ' ' "\n"|awk '/.+/ {rt=$1; rec=rec+1; total=total+rt; if (minn>rt || minn==0) {minn=rt}; if (maxx<rt) {maxx=rt}; }
 	             END{ if (rec==0) {ave=0} else {ave=total/rec}; printf "average %5i     min %5i     max %5i ms %2i responses\n", ave,minn,maxx,rec}'
+        fi
 	done
 	echo ""
 
